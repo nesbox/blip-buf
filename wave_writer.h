@@ -11,7 +11,7 @@
 then exit program. */
 
 /* Creates and opens sound file of given sample rate and filename. */
-void wave_open( int sample_rate, const char filename [] );
+int wave_open( int sample_rate, const char filename [] );
 
 /* Enables stereo output. */
 void wave_enable_stereo( void );
@@ -23,7 +23,7 @@ void wave_write( const short in [], int count );
 int wave_sample_count( void );
 
 /* Finishes writing sound file and closes it. */
-void wave_close( void );
+int wave_close( void );
 
 #ifdef __cplusplus
 	}

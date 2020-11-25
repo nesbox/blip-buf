@@ -25,12 +25,6 @@ static int   chan_count;
 
 static void write_header( void );
 
-static void fatal_error( char const str [] )
-{
-	fprintf( stderr, "Error: %s\n", str );
-	exit( EXIT_FAILURE );
-}
-
 #if defined(_MSC_VER) || defined(__MINGW32__)
 
 #include <windows.h>
@@ -57,41 +51,43 @@ static FILE *ww_fopen(const char *filename, const char *mode)
 #define ww_fopen fopen
 #endif
 
-void wave_open( int new_sample_rate, char const filename [] )
+int wave_open( int new_sample_rate, char const filename [] )
 {
 	wave_close();
 	
 	file = ww_fopen( filename, "wb" );
-	if ( !file )
-		fatal_error( "Couldn't open WAVE file for writing" );
-	
-	sample_rate = new_sample_rate;
-	write_header();
+	if (file )
+	{
+		sample_rate = new_sample_rate;
+		write_header();		
+	}
+
+	return file != NULL;
 }
 
-void wave_close( void )
+int wave_close( void )
 {
 	if ( file )
 	{
-		if ( fflush( file ) )
-			fatal_error( "Couldn't write WAVE data" );
-		
-		rewind( file );
-		write_header();
-		
-		if ( fclose( file ) )
-			fatal_error( "Couldn't write WAVE data" );
-		file = NULL;
+		if (!fflush(file))
+		{
+			rewind( file );
+			write_header();
+			
+			if(!fclose(file))
+				file = NULL;
+		}	
 	}
 	
 	sample_count = 0;
 	chan_count   = 1;
+
+	return file != NULL;
 }
 
-static void write_data( void const* in, unsigned size )
+static int write_data( void const* in, unsigned size )
 {
-	if ( !fwrite( in, size, 1, file ) )
-		fatal_error( "Couldn't write WAVE data" );
+	return !fwrite( in, size, 1, file );
 }
 
 static void set_le32( unsigned char p [4], unsigned n )
