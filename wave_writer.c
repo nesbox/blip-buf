@@ -31,11 +31,37 @@ static void fatal_error( char const str [] )
 	exit( EXIT_FAILURE );
 }
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
+
+#include <windows.h>
+
+static wchar_t* str2wstr(const char *str) {
+  int len = strlen(str) + 1;
+  wchar_t* wstr = malloc(len * sizeof(wchar_t));
+  MultiByteToWideChar(CP_UTF8, 0, str, len * sizeof(char), wstr, len);
+  return wstr;
+}
+
+static FILE *ww_fopen(const char *filename, const char *mode)
+{
+  wchar_t* wFilename = str2wstr(filename);
+  wchar_t* wMode = str2wstr(mode);
+  FILE *pFile = _wfopen(wFilename, wMode);
+  free(wFilename);
+  free(wMode);
+
+  return pFile;
+}
+
+#else
+#define ww_fopen fopen
+#endif
+
 void wave_open( int new_sample_rate, char const filename [] )
 {
 	wave_close();
 	
-	file = fopen( filename, "wb" );
+	file = ww_fopen( filename, "wb" );
 	if ( !file )
 		fatal_error( "Couldn't open WAVE file for writing" );
 	
